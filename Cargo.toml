@@ -1,3 +1,3 @@
 [workspace]
 resolver = "3"
-members = ["linked-list/url-navigation"]
+members = [ "linked-list/list-lib","linked-list/url-navigation", "queue/queue-lib"]

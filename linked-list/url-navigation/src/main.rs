@@ -1,7 +1,6 @@
-mod list;
-
 use std::{process, time::SystemTime};
-use list::*;
+
+use list_lib::LinkedList;
 
 struct Page {
   id: i32,
