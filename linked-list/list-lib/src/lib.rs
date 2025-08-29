@@ -58,7 +58,6 @@ impl<T>  LinkedList<T> {
     return None;
   }
 
-
   pub fn back(&mut self) -> Option<&T> {
     if self.cursor != null_mut() {
       unsafe {
