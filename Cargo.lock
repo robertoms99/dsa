@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "hash-lib"
+version = "0.1.0"
+dependencies = [
+ "list-lib",
+]
+
+[[package]]
 name = "list-lib"
 version = "0.1.0"
 

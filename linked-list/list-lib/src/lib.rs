@@ -1,4 +1,4 @@
-use std::{alloc::{alloc, dealloc, Layout}, cell::{Ref, RefCell}, fmt::Debug, ops::Deref, ptr::{self, null, null_mut}, rc::Rc};
+use std::{alloc::{alloc, dealloc, Layout}, cell::{Ref, RefCell}, fmt::Debug, ops::{Deref, DerefMut},  ptr::{self, null, null_mut}, rc::Rc};
 
 #[derive(Debug)]
 struct LLNode<T> {
@@ -9,9 +9,9 @@ struct LLNode<T> {
 
 #[derive(Debug)]
 pub struct LinkedList<T> {
-  head: *const LLNode<T>,
+  head: *mut LLNode<T>,
   tail: *mut LLNode<T>,
-  length: usize,
+  pub length: usize,
   cursor: *mut LLNode<T>
 }
 
@@ -42,14 +42,14 @@ impl<T>  LinkedList<T> {
         self.tail = node_ptr;
         self.cursor = node_ptr;
 
-        if self.head == null() { self.head = node_ptr; }
+        if self.head == null_mut() { self.head = node_ptr; }
         self.length = self.length + 1;
     }
   }
 
 
   pub fn get_head(&self) -> Option<&T> {
-    if self.head != null() {
+    if self.head != null_mut() {
       unsafe  {
           return Some(&(*(*self.head).value));
       }
@@ -91,9 +91,9 @@ impl<T>  LinkedList<T> {
     return None;
   }
 
-  pub fn traverse(&self, callback: impl Fn(&T)){
+  fn _traverse<R>(&self, callback: impl Fn(&T)-> R ){
     let mut cur_node = self.head;
-    while cur_node != null() {
+    while cur_node != null_mut() {
       unsafe {
         callback(&(*cur_node).value);
         cur_node = (*cur_node).next;
@@ -101,7 +101,47 @@ impl<T>  LinkedList<T> {
     }
   }
 
-    pub fn traverse_reverse(&self, callback: impl Fn(&T)){
+  fn _find_node(&self,callback: impl Fn(&T) -> bool) -> Option<&mut LLNode<T>>{
+        let mut cur_node = self.head;
+        while cur_node != null_mut() {
+          unsafe {
+            if callback(&(*cur_node).value) {
+              return Some(&mut (*cur_node));
+            }
+            cur_node = (*cur_node).next;
+          }
+        }
+        return None;
+  }
+
+  pub fn find(&self,callback: impl Fn(&T) -> bool) -> Option<&T> {
+          match self._find_node(callback) {
+            Some(node) => Some(&node.value),
+            None => None
+          }
+  }
+
+  pub fn replace(&mut self,callback: impl Fn(&T) -> bool, new_value: T) -> Option<Rc<T>>{
+    let node =  self._find_node(callback)?;
+    let prev_value = Rc::clone(&node.value);
+    node.value = Rc::new(new_value);
+
+    return Some(prev_value);
+  }
+
+  pub fn delete(&mut self,callback: impl Fn(&T) -> bool) -> Option<Rc<T>>{
+      let node = self._find_node(callback)?;
+      let value = Rc::clone(&node.value);
+      self.remove_node(node as *mut LLNode<T>);
+
+      return Some(value)
+  }
+
+  pub fn traverse<R>(&self, callback: impl Fn(&T) -> R){
+    return self._traverse(callback);
+  }
+
+    pub fn traverse_reverse<R>(&self, callback: impl Fn(&T)-> R){
     let mut cur_node = self.tail;
     while cur_node != null_mut() {
       unsafe {
@@ -112,14 +152,14 @@ impl<T>  LinkedList<T> {
   }
   pub fn clear(&mut self){
     self.remove_nodes(self.head as *mut LLNode<T>);
-    self.head= null();
+    self.head = null_mut();
     self.tail = null_mut();
     self.cursor = null_mut();
   }
 
   pub fn delete_head(&mut self) -> Option<Rc<T>> {
     let value: Rc<T>;
-    if self.head != null() {
+    if self.head != null_mut() {
       unsafe  {
         value = Rc::clone(&((*self.head).value));
         let next = (*self.head).next;
@@ -127,11 +167,9 @@ impl<T>  LinkedList<T> {
         self.head = next;
       }
 
-
       return Some(value);
 
     }
-
 
     return None;
   }
@@ -162,15 +200,18 @@ impl<T>  LinkedList<T> {
      while cur_node != null_mut()  {
        unsafe {
         let layout = Layout::new::<LLNode<T>>();
-        let aux_node = cur_node as *mut u8;
+        let aux_node = cur_node;
         cur_node = (*cur_node).next as *mut LLNode<T>;
 
-        dealloc(aux_node, layout);
+        ptr::drop_in_place(aux_node);
+        dealloc(aux_node  as *mut u8, layout);
+
+        self.length = self.length - 1;
       }
     }
   }
 
   pub fn new() -> Self{
-    LinkedList { head: null(), tail: null_mut(), length: 0,cursor: null_mut() }
+    LinkedList { head: null_mut(), tail: null_mut(), length: 0,cursor: null_mut() }
   }
 }
