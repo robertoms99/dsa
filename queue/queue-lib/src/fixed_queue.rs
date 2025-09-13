@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, usize};
+use std::{cell::RefCell, ops::DerefMut, rc::Rc, usize};
 
 use crate::QueueTrait;
 
@@ -8,24 +8,33 @@ pub struct FixedQueue<T:Sized, const N: usize> {
       length: usize,
       front: RefCell<isize>,
       rear: RefCell<isize>,
-      inner: [Option<Rc<T>>;N],
+      inner: [Option<T>;N],
  }
 
  impl<T: Sized, const N: usize> FixedQueue<T,N> {
+    pub fn new() -> Self {
+        Self {
+          capacity: N,
+          length: 0,
+          inner: [const {None}; N],
+          front: RefCell::new(-1),
+          rear: RefCell::new(-1)
+        }
+    }
      pub fn is_full(&self) -> bool {
         self.length == self.capacity
       }
  }
 
+
+
 impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
-  fn new() -> Self {
-      Self {
-        capacity: N,
-        length: 0,
-        inner: [const {None}; N],
-        front: RefCell::new(-1),
-        rear: RefCell::new(-1)
-      }
+  fn size(&self) -> usize {
+    self.length
+  }
+
+  fn clear(&mut self) {
+      while let Some(_) = self.dequeue() {}
   }
 
   fn enqueue(&mut self, value: T) {
@@ -41,12 +50,12 @@ impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
 
       let rear_idx = *rear_borrow_mut as usize;
 
-      self.inner[rear_idx] = Some(Rc::new(value));
+      self.inner[rear_idx] = Some(value);
 
       self.length = self.length + 1;
     }
 
-  fn dequeue(&mut self) -> Option<std::rc::Rc<T>> {
+  fn dequeue(&mut self) -> Option<T> {
           let size = self.capacity as isize;
           let mut front_borrow_mut = self.front.borrow_mut();
 
@@ -54,7 +63,7 @@ impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
 
           let front_idx = *front_borrow_mut as usize;
 
-          let value = Rc::clone(&(self.inner[front_idx].as_mut().expect("")));
+          let value = self.inner[front_idx].take();
 
           self.inner[front_idx] = None;
 
@@ -62,7 +71,7 @@ impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
 
           self.length -= 1;
 
-          return Some(value);
+          return value;
     }
 
   fn traverse<F>(&self, callback: F) where F: Fn(&T) {
@@ -76,7 +85,7 @@ impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
         return;
         };
 
-       callback(item.as_ref());
+       callback(item);
 
       front_aux_idx = (front_aux_idx + 1) % self.capacity as isize;
     }
@@ -88,7 +97,17 @@ impl<T: Sized, const N: usize> QueueTrait<T> for  FixedQueue<T,N> {
 
         let front_idx = *self.front.borrow() as usize;
         let value  = &self.inner[front_idx];
-        return value.as_deref();
+        return value.as_ref();
+    }
+
+  fn peek_mut(&mut self) -> Option<&mut T> {
+        if self.is_empty(){ return None; }
+
+        let front_idx = *self.front.borrow() as usize;
+
+        let Some(value) = &mut self.inner[front_idx] else { return None; };
+
+         return Some(value);
     }
 
     fn is_empty(&self)-> bool {

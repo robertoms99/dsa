@@ -1,36 +1,41 @@
 mod hash_functions;
 
-use std::{fmt::Debug, ops::Deref, rc::{Rc, Weak}};
+use std::{fmt::Debug, rc::{Rc}};
 
 use hash_functions::*;
 use list_lib::LinkedList;
 
 #[derive(Debug)]
-struct DataNode<'a,T> {
-  _key: &'a str,
+struct DataNode<T> {
+  _key: String,
   data: T
 }
 
 #[derive(Debug)]
-pub struct Hashtable< 'a, T,  const N:usize>  where T: Debug{
-  inner:  Vec<Option<Box<LinkedList<DataNode<'a, T>>>>>,
+pub struct Hashtable<  T,  const N:usize>  where T: Debug{
+  inner:  Vec<Option<Box<LinkedList<DataNode< T>>>>>,
   pub capacity: usize,
+  pub size: usize,
   pub length: usize
 }
 
-impl<'a,T, const N:usize> Hashtable<'a, T,N> where T: Debug {
+impl<T, const N:usize> Hashtable< T,N> where T: Debug {
   pub fn new() -> Self {
     let capacity = N + (N / 3);
     Self {
       inner: Vec::with_capacity(capacity),
       length: 0,
+      size: N,
       capacity
     }
   }
 
-  pub fn insert(&mut self, key: &'a str, value: T) -> usize {
+  pub fn insert(&mut self, key: String, value: T) -> Option<usize> {
+    if self.length >= self.size {
+      return None;
+    }
 
-    let idx = self.get_hashed_key(key);
+    let idx = self.get_hashed_key(key.as_str());
 
     unsafe {
       if idx > self.inner.len() {
@@ -40,8 +45,8 @@ impl<'a,T, const N:usize> Hashtable<'a, T,N> where T: Debug {
 
     self.insert_collision(idx, key, value);
 
-
-    return idx;
+    self.inner.as_ptr();
+    return Some(idx);
   }
 
   fn get_hashed_key(&self, key: &str) -> usize{
@@ -63,19 +68,28 @@ impl<'a,T, const N:usize> Hashtable<'a, T,N> where T: Debug {
       }
   }
 
+  pub fn search_mut(&mut self, key: &str) -> Option<&mut T> {
+    let idx = self.get_hashed_key(key);
+
+    return match self.inner.get_mut(idx)? {
+          Some(list_box) => {
+            let data_node = list_box.find_mut(| data_node | data_node._key == key)?;
+            Some(&mut data_node.data)
+          },
+          None => None
+      }
+  }
 
   pub  fn delete (&mut self, key: &str) -> Option<T> {
     let idx = self.get_hashed_key(key);
 
     return match self.inner.get_mut(idx)? {
             Some(list_box) => {
-              let rc_value = list_box.delete(| data_node | data_node._key == key)?;
+              let data_node = list_box.delete(| data_node | data_node._key == key)?;
 
               if list_box.length == 0 {
                 self.inner[idx] = None;
               }
-
-              let data_node = Rc::into_inner(rc_value)?;
 
                self.length -= 1;
 
@@ -83,16 +97,17 @@ impl<'a,T, const N:usize> Hashtable<'a, T,N> where T: Debug {
           },
           None => None
     };
-
   }
 
-  fn insert_collision(&mut self, idx: usize, key: &'a str, value: T){
+  fn insert_collision(&mut self, idx: usize, key: String, value: T){
       match self.inner.get_mut(idx) {
         Some( item ) => {
           match item {
             Some(list_box) =>{
-             if let Some(_) =  list_box.find( | data_node | data_node._key == key) {
-               list_box.replace( | data_node | data_node._key == key, DataNode { _key: key, data: value  }) ;
+              let kstr= key.as_str();
+             if let Some(data_node) =  list_box.find_mut( | data_node | data_node._key ==  kstr ) {
+               let new_data_node = DataNode { _key: key, data: value  };
+               data_node.data = new_data_node.data;
                return ;
              }
 

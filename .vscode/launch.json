@@ -1,0 +1,194 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'hash_lib'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=hash-lib"
+        ],
+        "filter": {
+          "name": "hash_lib",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'list_lib'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=list-lib"
+        ],
+        "filter": {
+          "name": "list_lib",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'ddos-logs'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=ddos-logs",
+          "--package=ddos-logs"
+        ],
+        "filter": {
+          "name": "ddos-logs",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'ddos-logs'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=ddos-logs",
+          "--package=ddos-logs"
+        ],
+        "filter": {
+          "name": "ddos-logs",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in library 'queue_lib'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--lib",
+          "--package=queue-lib"
+        ],
+        "filter": {
+          "name": "queue_lib",
+          "kind": "lib"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'url-navigation'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=url-navigation",
+          "--package=url-navigation"
+        ],
+        "filter": {
+          "name": "url-navigation",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+     {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'ddos-logs'",
+      "cargo": {
+        "args": [
+          "run",
+          "--bin=ddos-logs",
+          "--package=ddos-logs"
+        ],
+        "filter": {
+          "name": "ddos-logs",
+          "kind": "bin"
+        }
+      },
+      "args": ["logs.txt"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'url-navigation'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=url-navigation",
+          "--package=url-navigation"
+        ],
+        "filter": {
+          "name": "url-navigation",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'routing-queue'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=routing-queue",
+          "--package=routing-queue"
+        ],
+        "filter": {
+          "name": "routing-queue",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'routing-queue'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=routing-queue",
+          "--package=routing-queue"
+        ],
+        "filter": {
+          "name": "routing-queue",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
